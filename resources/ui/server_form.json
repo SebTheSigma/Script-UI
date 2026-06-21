@@ -1,0 +1,54 @@
+{
+  "namespace": "server_form",
+  "long_form": {
+    "type": "panel",
+    "size": [
+      "100%",
+      "100%"
+    ],
+    "controls": [
+      {
+        "long_form@common_dialogs.main_panel_no_buttons": {
+          "$title_panel": "common_dialogs.standard_title_label",
+          "$title_size": [
+            "100% - 14px",
+            10
+          ],
+          "$text_name": "#text",
+          "$title_text_binding_type": "none",
+          "$child_control": "server_form.long_form_panel",
+          "type": "panel",
+          "size": [
+            225,
+            200
+          ],
+          "layer": 2,
+          "bindings": [
+            {
+              "binding_type": "view",
+              "source_property_name": "(not ((#title_text - 'normal:') = #title_text))",
+              "target_property_name": "#visible"
+            },
+            {
+              "binding_type": "view",
+              "source_property_name": "(#title_text - 'normal:')",
+              "target_property_name": "#text"
+            }
+          ]
+        }
+      },
+      {
+        "dynamic_form@dynamic.panel": {
+          "layer": 2,
+          "bindings": [
+            {
+              "binding_type": "view",
+              "source_property_name": "(not ((#title_text - 'dynamic:') = #title_text))",
+              "target_property_name": "#visible"
+            }
+          ]
+        }
+      }
+    ]
+  }
+}
