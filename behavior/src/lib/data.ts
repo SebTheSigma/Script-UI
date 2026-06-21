@@ -14,4 +14,4 @@ export const DEFAULT_PANEL_TEX: BodyTextures = {
     header_texture: "textures/ui/forms/default_title_background"
 }
 
-export const BLANK_TEX = "textures/ui/blank";
+export const BLANK_TEX = "textures/ui/forms/blank";
