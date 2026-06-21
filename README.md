@@ -72,3 +72,23 @@ export interface ButtonOptions {
 ```
 
 **Complete control over images:**
+- Edit image texture
+- Edit image x offset and y offset
+- Edit image width and height
+
+**Complete control over labels:**
+- Edit label text
+- Edit label x offset and y offset
+- Edit fontsize / font scale
+- Edit text alignment:
+```typescript
+type TextAlignment = "left" | "center" | "right";
+```
+
+## Examples:
+See ```behavior/src/examples```
+
+**Dynamic flow-like UI with stackers:**
+- Edit stacker gap (the gap used between stacked elements)
+- Add a fixed offset for the stacker that influences all stacker elements
+- Control the orientation of the stacker, deciding which direction elements generate in
