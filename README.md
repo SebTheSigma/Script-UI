@@ -1,5 +1,5 @@
 # Script-UI
-Dynamic, script side json ui forms.
+Dynamic, script side json ui forms, every property listed below can be changed without reloading a resource pack.
 
 ## What you can do:
 
