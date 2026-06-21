@@ -3,30 +3,49 @@ import { Image } from "./image";
 import { Label } from "./label";
 
 export interface ButtonOptions {
-    onClick?: () => void;
-    /** @default false */
-    center?: boolean;
-    /** @default false */
-    centerI?: boolean;
-    /** @default false */
-    centerTextX?: boolean;
-    /** @default false */
-    localiseText?: boolean;
-    /** @default false */
-    localiseImage?: boolean;
+
     /**
+     * Calls the callback function when the button has been clicked
+     */
+    onClick?: () => void;
+
+    /**
+     * Centers the image in the button
      * @default false
-     *
-     * @description
-     * Force the image to inherit the parent size from the form panel instead of the button panel
+     */
+    centerI?: boolean;
+
+    /**
+     * Centers the text width-wise (across the x axis)
+     * @default false
+     */
+    centerTextX?: boolean;
+
+    /**
+     * Positions the text local to the button, so an increase in button position means an increase in text position,
+     * almost always needed to be `true` otherwise text anchors to the form instead of the button
+     * @default false
+     */
+    localiseText?: boolean;
+
+    /**
+     * Positions the image local to the button, so an increase in button position means an increase in image position,
+     * almost always needed to be `true` otherwise image anchors to the form instead of the button
+     * @default false
+     */
+    localiseImage?: boolean;
+
+    /**
+     * Force the image to inherit the parent size from the form panel instead of the button panel,
+     * meaning expressions involving percentages, e.g. `50% + 5px` inherit size from the form
+     * @default false
      */
     forceGlobalImageParent?: boolean;
 
     /**
+     * Force the text to inherit the parent size from the form panel instead of the button panel,
+     * meaning expressions involving percentages, e.g. `50% + 5px` inherit size from the form
      * @default false
-     *
-     * @description
-     * Force the text to inherit the parent size from the form panel instead of the button panel
      */
     forceGlobalTextParent?: boolean;
 
