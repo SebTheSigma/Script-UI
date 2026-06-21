@@ -85,10 +85,10 @@ export interface ButtonOptions {
 type TextAlignment = "left" | "center" | "right";
 ```
 
-## Examples:
-See ```behavior/src/examples```
-
 **Dynamic flow-like UI with stackers:**
 - Edit stacker gap (the gap used between stacked elements)
 - Add a fixed offset for the stacker that influences all stacker elements
 - Control the orientation of the stacker, deciding which direction elements generate in
+
+## Examples:
+See ```behavior/src/examples```
