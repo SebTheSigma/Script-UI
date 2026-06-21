@@ -26,7 +26,6 @@ export class BaseElement {
     }
 
     getBoundingW() {
-        console.warn('parsing w', this.w, this.parentalDimensions.width)
         return UIUtils.processUnitString(this.w, this.parentalDimensions.width);
     }
 
