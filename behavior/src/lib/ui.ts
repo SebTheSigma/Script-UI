@@ -375,14 +375,13 @@ export class DynamicActionUI {
 
         this.f.show(player).then((response) => {
             if (response.canceled) return;
-
-            const allElements = [...this.buttons, ...this.images, ...this.labels];
-
-            for (const element of allElements) {
-                if (!(element instanceof Button)) continue;
-
-                // Callback for onClick
-                if (response.selection === element.elementIndex) element.options?.onClick?.();
+            // Iterate through buttons to find matching elementIndex[cite: 8]
+            for (const button of this.buttons) {
+                if (response.selection === button.elementIndex) {
+                    if (button.options?.onClick) {
+                        button.options.onClick();
+                    }
+                }
             }
         });
     }
