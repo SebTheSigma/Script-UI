@@ -31,12 +31,6 @@ export interface ButtonOptions {
     centerI?: boolean;
 
     /**
-     * Centers the text width-wise (across the x axis)
-     * @default false
-     */
-    centerTextX?: boolean;
-
-    /**
      * Positions the text local to the button, so an increase in button position means an increase in text position,
      * Almost always needed to be `true` otherwise text anchors to the form instead of the button
      * @default false
