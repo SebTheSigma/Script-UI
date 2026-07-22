@@ -8,7 +8,7 @@ import { Label, TextAlignment } from "./elements/label";
 import { BodyTextures, Dimensions, DynamicPacketMap, Element, Position, SizedElement } from "./general/types";
 import { Stacker } from "./elements/stacker";
 import { UIUtils } from "./general/util";
-import { TitleHeaderOptions } from "./elements/singles/titleHeader";
+import { HeaderOptions } from "./elements/singles/header";
 import { Grid } from "./elements/grid";
 import { PlayerRenderer } from "./elements/playerRenderer";
 
@@ -33,26 +33,21 @@ export class DynamicActionUI {
         private height: number,
         private bodyTextures: BodyTextures,
         private headerSize: Dimensions = { width, height },
-        private headerOffset: Position = { x: 0, y: 0 }
+        private headerOffset: Position = { x: 0, y: 0 },
+        private headerOptions: HeaderOptions = { autoCenter: false }
     ) {
         this.f = new ActionFormData();
     }
 
-    title(title: Label, titleOptions?: TitleHeaderOptions): void {
+    title(title: Label): void {
         title.setParentalDimensions(this.headerSize);
 
         const {
-            autoCenter,
-            alignmentShouldCombine
-        } = titleOptions ?? {};
-
-        const {
-            text,
             fontSize
         } = title;
 
         const packets: DynamicPacketMap = {
-            title: text,
+            title: title.getText(),
             body: this.bodyTextures.body_texure ?? BLANK_TEX,
             header: this.bodyTextures.header_texture ?? BLANK_TEX,
             font_scale: fontSize * 100,
@@ -63,7 +58,7 @@ export class DynamicActionUI {
         let correctedHeaderX = this.headerOffset.x;
 
         // Auto center logic
-        if (autoCenter) {
+        if (this.headerOptions.autoCenter) {
             correctedHeaderX = (this.width - this.headerSize.width) / 2;
         }
 
@@ -71,9 +66,8 @@ export class DynamicActionUI {
         let titleOffset = title.getAlignmentOffset(this.headerSize.width);
 
         // Combines alignment with offset
-        if (alignmentShouldCombine) {
-            titleOffset += title.getBoundingX();
-        }
+        titleOffset += title.getBoundingX();
+        
 
         const nums = [this.width, this.height, this.headerSize.width, this.headerSize.height, correctedHeaderX + this.NEGATIVE_OFFSET, correctedHeaderY + this.NEGATIVE_OFFSET, titleOffset + this.NEGATIVE_OFFSET, title.getBoundingY() + this.NEGATIVE_OFFSET].map(n => Math.floor(n));
         const string = this.buildDynamicString(packets, nums, "dynamic:");

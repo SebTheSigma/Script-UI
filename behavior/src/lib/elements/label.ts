@@ -24,7 +24,7 @@ export class Label extends BaseElement {
     public wrappedText: string | undefined;
 
     constructor(
-        public text: string,
+        private text: string,
         public offset: PositionExpression,
         public fontSize: number,
         public textAlignment: TextAlignment = "left",
@@ -34,7 +34,7 @@ export class Label extends BaseElement {
         }
     ) {
         super(offset, { width: 0, height: 0 });
-        this.size.width = wrapWidth ?? this.getTextWidth();
+        this.size.width = this.getTextWidth();
         this.size.height = this.getTextHeight();
 
         // Caches
