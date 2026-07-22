@@ -1,51 +1,64 @@
-import { Dimensions } from "../general/types";
+import { DimensionExpression, Dimensions, Expression, PositionExpression } from "../general/types";
 import { UIUtils } from "../general/util";
 import { DynamicActionUI } from "../ui";
 
 export class BaseElement {
-    public parentalDimensions: Dimensions = { width: 0, height: 0 };
+    public parentalDimensions: Dimensions | undefined;
     public elementIndex: number | undefined;
 
     constructor(
-        public x: number | string = 0,
-        public y: number | string = 0,
-        public w: number | string = 0,
-        public h: number | string = 0,
+        public offset: PositionExpression,
+        public size: DimensionExpression
     ) {}
 
     setParentalDimensions(parentalDimensions: Dimensions) {
         this.parentalDimensions = parentalDimensions;
     }
 
+    safeSetParentalDimensions(parentalDimensions: Dimensions) {
+        if (this.hasParentalDimensions()) return;
+
+        // Only set if no parental dimensions exist
+        this.parentalDimensions = parentalDimensions;
+    }
+
+    hasParentalDimensions() {
+        return this.parentalDimensions !== undefined;
+    }
+
     getBoundingX() {
-        return UIUtils.processUnitString(this.x, this.parentalDimensions.width);
+        console.warn('Warning: Cannot find bounding x parental dimensions');
+        return UIUtils.processUnitString(this.offset.x, this.parentalDimensions?.width ?? 0);
     }
 
     getBoundingY() {
-        return UIUtils.processUnitString(this.y, this.parentalDimensions.height);
+        console.warn('Warning: Cannot find bounding y parental dimensions');
+        return UIUtils.processUnitString(this.offset.y, this.parentalDimensions?.height ?? 0);
     }
 
     getBoundingW() {
-        return UIUtils.processUnitString(this.w, this.parentalDimensions.width);
+        console.warn('Warning: Cannot find bounding w parental dimensions');
+        return UIUtils.processUnitString(this.size.width, this.parentalDimensions?.width ?? 0);
     }
 
     getBoundingH() {
-        return UIUtils.processUnitString(this.h, this.parentalDimensions.height);
+        console.warn('Warning: Cannot find bounding h parental dimensions');
+        return UIUtils.processUnitString(this.size.height, this.parentalDimensions?.height ?? 0);
     }
 
-    setW(width: number | string) {
-        this.w = width;
+    setW(width: Expression) {
+        this.size.width = width;
     }
 
-    setH(height: number | string) {
-        this.h = height;
+    setH(height: Expression) {
+        this.size.height = height;
     }
 
-    setX(x: number | string) {
-        this.x = x;
+    setX(x: Expression) {
+        this.offset.x = x;
     }
 
-    setY(y: number | string) {
-        this.y = y;
+    setY(y: Expression) {
+        this.offset.y = y;
     }
 }

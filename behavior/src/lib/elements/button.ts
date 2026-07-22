@@ -1,3 +1,4 @@
+import { DimensionExpression, Expression, PositionExpression } from "../general/types";
 import { BaseElement } from "./base";
 import { Image } from "./image";
 import { Label } from "./label";
@@ -14,12 +15,6 @@ export interface ButtonOptions {
      * @default false
      */
     centerI?: boolean;
-
-    /**
-     * Centers the text width-wise (across the x axis)
-     * @default false
-     */
-    centerTextX?: boolean;
 
     /**
      * Positions the text local to the button, so an increase in button position means an increase in text position,
@@ -49,10 +44,23 @@ export interface ButtonOptions {
      */
     forceGlobalTextParent?: boolean;
 
-    button_textures?: {
+    buttonTextures?: {
         default_texture?: string;
         hover_texture?: string;
     };
+
+    /**
+     * Shows text at the point point when hover over a button, the texture cannot be changed as mojang have it hardcoded.
+     * Useful for tooltips / extra info
+     * @default EmptyString
+     */
+    hoverText?: string;
+
+    /**
+     * If true clicking this button will not count as a button click in terms of the `hardClose` parameter in onClose
+     * @default false
+     */
+    isCloseButton?: boolean;
 }
 
 // Currently keeping button panel purely for the flowy typing
@@ -60,14 +68,12 @@ export interface ButtonOptions {
 
 export class ButtonPanel {
     constructor(
-        public x: number | string,
-        public y: number | string,
-        public w: number | string,
-        public h: number | string,
+        public offset: PositionExpression,
+        public size: DimensionExpression,
     ) {}
 
     public clone() {
-        return new ButtonPanel(this.x, this.y, this.w, this.h);
+        return new ButtonPanel({ ...this.offset }, { ...this.size });
     }
 }
 
@@ -78,30 +84,15 @@ export class Button extends BaseElement {
         public ButtonLabel?: Label,
         public options: ButtonOptions = {},
     ) {
-        super(ButtonPanel.x, ButtonPanel.y, ButtonPanel.w, ButtonPanel.h);
-    }
-
-    setX(x: number | string) {
-        super.setX(x);            // update Button
-        this.ButtonPanel.x = x;   // also update panel
-    }
-
-    setY(y: number | string) {
-        super.setY(y);
-        this.ButtonPanel.y = y;
-    }
-
-    setW(w: number | string) {
-        super.setW(w);
-        this.ButtonPanel.w = w;
-    }
-
-    setH(h: number | string) {
-        super.setH(h);
-        this.ButtonPanel.h = h;
+        super(ButtonPanel.offset, ButtonPanel.size);
     }
 
     public clone() {
-        return new Button(this.ButtonPanel.clone(), this.ButtonImage?.clone(), this.ButtonLabel?.clone(), { ...this.options });
+        return new Button(
+            this.ButtonPanel.clone(),
+            this.ButtonImage?.clone(),
+            this.ButtonLabel?.clone(),
+            { ...this.options }
+        );
     }
 }

@@ -4,36 +4,78 @@ import { BLANK_TEX, DEFAULT_BUTTON_TEX } from "./data";
 import { charMap, DEFAULT_CHAR_WIDTH } from "./char";
 import { Button } from "./elements/button";
 import { Image } from "./elements/image";
-import { Label } from "./elements/label";
-import { BodyTextures, DynamicPacketMap, Element, SizedElement } from "./general/types";
+import { Label, TextAlignment } from "./elements/label";
+import { BodyTextures, Dimensions, DynamicPacketMap, Element, Position, SizedElement } from "./general/types";
 import { Stacker } from "./elements/stacker";
 import { UIUtils } from "./general/util";
+import { TitleHeaderOptions } from "./elements/singles/titleHeader";
+import { Grid } from "./elements/grid";
+import { PlayerRenderer } from "./elements/playerRenderer";
+
+type OnCloseCallback = (hardClose: boolean) => any;
 
 export class DynamicActionUI {
     private f: ActionFormData;
     private hasTitle = false;
     private PACKET_INDEXER_SIZE = 3;
+    private NEGATIVE_OFFSET = 500;
+    private onCloseCallback: OnCloseCallback | undefined;
 
     public buttons: Button[] = [];
     public images: Image[] = [];
     public labels: Label[] = [];
 
+    // Max 1
+    public playerRenderers: PlayerRenderer[] = [];
+
     constructor(
         private width: number,
         private height: number,
         private bodyTextures: BodyTextures,
+        private headerSize: Dimensions = { width, height },
+        private headerOffset: Position = { x: 0, y: 0 }
     ) {
         this.f = new ActionFormData();
     }
 
-    title(text: string): void {
+    title(title: Label, titleOptions?: TitleHeaderOptions): void {
+        title.setParentalDimensions(this.headerSize);
+
+        const {
+            autoCenter,
+            alignmentShouldCombine
+        } = titleOptions ?? {};
+
+        const {
+            text,
+            fontSize
+        } = title;
+
         const packets: DynamicPacketMap = {
             title: text,
             body: this.bodyTextures.body_texure ?? BLANK_TEX,
             header: this.bodyTextures.header_texture ?? BLANK_TEX,
+            font_scale: fontSize * 100,
         };
 
-        const nums = [this.width, this.height];
+        const correctedHeaderY = this.headerOffset.y - this.headerSize.height;
+
+        let correctedHeaderX = this.headerOffset.x;
+
+        // Auto center logic
+        if (autoCenter) {
+            correctedHeaderX = (this.width - this.headerSize.width) / 2;
+        }
+
+        // Text alignment
+        let titleOffset = title.getAlignmentOffset(this.headerSize.width);
+
+        // Combines alignment with offset
+        if (alignmentShouldCombine) {
+            titleOffset += title.getBoundingX();
+        }
+
+        const nums = [this.width, this.height, this.headerSize.width, this.headerSize.height, correctedHeaderX + this.NEGATIVE_OFFSET, correctedHeaderY + this.NEGATIVE_OFFSET, titleOffset + this.NEGATIVE_OFFSET, title.getBoundingY() + this.NEGATIVE_OFFSET].map(n => Math.floor(n));
         const string = this.buildDynamicString(packets, nums, "dynamic:");
 
         this.f.title(string);
@@ -41,80 +83,88 @@ export class DynamicActionUI {
     }
 
     button(button: Button): DynamicActionUI {
-        const { ButtonPanel, ButtonImage: image, ButtonLabel: label, options } = button;
-        let { x, y, w, h } = ButtonPanel;
+        const { ButtonImage: image, ButtonLabel: label, options } = button;
+
+        const parentDim = {
+            width: this.width,
+            height: this.height
+        };
+
+        button.safeSetParentalDimensions(parentDim);
+
+        const buttonOffset = {
+            x: button.getBoundingX(),
+            y: button.getBoundingY()
+        };
+
+        const buttonDimensions = {
+            width: button.getBoundingW(),
+            height: button.getBoundingH()
+        };
 
         const {
             centerI = false,
-            centerTextX = false,
             localiseText = false,
             localiseImage = false,
             forceGlobalImageParent = false,
             forceGlobalTextParent = false,
-            button_textures = DEFAULT_BUTTON_TEX,
+            buttonTextures = DEFAULT_BUTTON_TEX,
+            hoverText,
+            isCloseButton = false
         } = options ?? {};
 
-        const { default_texture = DEFAULT_BUTTON_TEX.default_texture, hover_texture = DEFAULT_BUTTON_TEX.hover_texture } = button_textures;
+        const {
+            default_texture,
+            hover_texture,
+        } = buttonTextures;
 
-        const parentDim = { width: this.width, height: this.height };
-        x = UIUtils.processUnitString(x, parentDim.width);
-        y = UIUtils.processUnitString(y, parentDim.height);
-        w = UIUtils.processUnitString(w, parentDim.width);
-        h = UIUtils.processUnitString(h, parentDim.height);
+        forceGlobalImageParent ? image?.setParentalDimensions(parentDim) : image?.safeSetParentalDimensions(buttonDimensions)
+        let ix = image?.getBoundingX() ?? 0;
+        let iy = image?.getBoundingY() ?? 0;
+        let iw = image?.getBoundingW() ?? 0;
+        let ih = image?.getBoundingH() ?? 0;
 
-        let ix = image?.x ?? 0;
-        let iy = image?.y ?? 0;
-        let iw = image?.w ?? 0;
-        let ih = image?.h ?? 0;
+        forceGlobalTextParent ? label?.setParentalDimensions(parentDim) : label?.safeSetParentalDimensions(buttonDimensions);
+        let tx = label?.getBoundingX() ?? 0;
+        let ty = label?.getBoundingY() ?? 0;
 
-        const imageParentDim = forceGlobalImageParent ? parentDim : { width: w, height: h };
-        ix = UIUtils.processUnitString(ix, imageParentDim.width);
-        iy = UIUtils.processUnitString(iy, imageParentDim.height);
-        iw = UIUtils.processUnitString(iw, imageParentDim.width);
-        ih = UIUtils.processUnitString(ih, imageParentDim.height);
-
-        let tx = label?.x ?? 0;
-        let ty = label?.y ?? 0;
-
-        const labelParentDim = forceGlobalTextParent ? parentDim : { width: w, height: h };
-        tx = UIUtils.processUnitString(tx, labelParentDim.width);
-        ty = UIUtils.processUnitString(ty, labelParentDim.height);
-
-        if (localiseImage) {
-            ix += x;
-            iy += y;
+        if (localiseImage && image) {
+            ix! += buttonOffset.x;
+            iy! += buttonOffset.y;
         }
 
-        ix = centerI ? (w - iw) / 2 + ix : ix;
-        iy = centerI ? (h - ih) / 2 + iy : iy;
+        if (centerI && image) {
+            ix = (buttonDimensions.width - iw!) / 2 + ix!;
+            iy = (buttonDimensions.height - ih!) / 2 + iy!;
+        }
 
-        if (localiseText) {
-            tx += x;
-            ty += y;
+        if (localiseText && label) {
+            tx! += buttonOffset.x;
+            ty! += buttonOffset.y;
         }
 
         const fontSize = label?.fontSize ?? 1;
 
-        const textWidth = label?.size.width;
-
-        if (textWidth && textWidth < w && centerTextX) {
-            tx += (w - textWidth) / 2;
+        if (label) {
+            const alignmentOffset = label?.getAlignmentOffset(button.getBoundingW()) ?? 0;
+            tx! += alignmentOffset;
         }
 
         const packets: DynamicPacketMap = {
             font_scale: fontSize * 100,
-            text: label?.text ?? "",
-            default_tex: default_texture,
-            hover_tex: hover_texture,
+            text: label?.getText() ?? "",
+            default_tex: default_texture ?? "",
+            hover_tex: hover_texture ?? "",
+            hover_text: hoverText ?? ""
         };
 
         // Account for stack panel width stacking by removing 1 px based on index
         const elements = this.countElements();
-        x -= elements;
-        ix -= elements;
-        tx -= elements;
+        buttonOffset.x -= elements;
+        if (image) ix! -= elements;
+        if (label) tx! -= elements;
 
-        const nums = [w, h, x, y, iw, ih, ix, iy, tx, ty].map((n) => Math.floor(n));
+        const nums = [buttonDimensions.width, buttonDimensions.height, buttonOffset.x + this.NEGATIVE_OFFSET, buttonOffset.y + this.NEGATIVE_OFFSET, iw, ih, ix + this.NEGATIVE_OFFSET, iy + this.NEGATIVE_OFFSET, tx + this.NEGATIVE_OFFSET, ty + this.NEGATIVE_OFFSET].map((n) => Math.floor(n));
         const string = this.buildDynamicString(packets, nums, `b${this.generateRandomString(9)}:`);
 
         button.elementIndex = this.countElements();
@@ -125,17 +175,48 @@ export class DynamicActionUI {
         return this;
     }
 
+    grid(grid: Grid) {
+        const { buttons, dimensions } = grid;
+        const { width, height } = dimensions;
+
+        grid.safeSetParentalDimensions({ width: this.width, height: this.height });
+        const w = grid.getBoundingW();
+        const h = grid.getBoundingH();
+        const boundingX = grid.getBoundingX();
+        const boundingY = grid.getBoundingY();
+
+        if (buttons.length !== dimensions.width * dimensions.height) {
+            throw new Error('Amount of buttons doesnt match grid dimensions');
+        }
+
+        const dx = (w ?? this.width) / width;
+        const dy = (h ?? this.height) / height;
+
+        for (let x = 0; x < width;x ++) {
+            for (let y = 0; y < height;y ++) {
+                const id = (y * width) + x;
+                const button = buttons[id];
+
+                button.setParentalDimensions({ width: w, height: h });
+
+                button.setX((dx * x) + boundingX);
+                button.setY((dy * y) + boundingY);
+
+                this.button(button);
+            }
+        }
+    }
+
     image(image: Image): DynamicActionUI {
-        let { x, y, w, h } = image;
-        const parentDim = { width: this.width, height: this.height };
-        x = UIUtils.processUnitString(x, parentDim.width);
-        y = UIUtils.processUnitString(y, parentDim.height);
-        w = UIUtils.processUnitString(w, parentDim.width);
-        h = UIUtils.processUnitString(h, parentDim.height);
+        image.safeSetParentalDimensions({ width: this.width, height: this.height });
+        let x = image.getBoundingX();
+        let y = image.getBoundingY();
+        let w = image.getBoundingW();
+        let h = image.getBoundingH();
 
         x -= this.countElements();
 
-        const nums = [x, y, w, h].map((n) => Math.floor(n));
+        const nums = [x + this.NEGATIVE_OFFSET, y + this.NEGATIVE_OFFSET, w, h].map((n) => Math.floor(n));
         const string = `i${this.generateRandomString(9)}:${nums.map((n) => this.formatNumber(n)).join(":")}`;
 
         this.f.header(`${string}:${image.texture}`); // No need for packets as only one packet, meaning i can just read the remaining string
@@ -147,31 +228,19 @@ export class DynamicActionUI {
     }
 
     label(label: Label): DynamicActionUI {
-        let { x, y, text, fontSize, textAlignment } = label;
-        const parentDim = { width: this.width, height: this.height };
-        x = UIUtils.processUnitString(x, parentDim.width);
-        y = UIUtils.processUnitString(y, parentDim.height);
+        let { fontSize, textAlignment } = label;
+        const text = label.getText();
 
-        if (textAlignment === "center") {
-            const textWidth = label.size.width;
+        label.safeSetParentalDimensions({ width: this.width, height: this.height });
+        let x = label.getBoundingX();
+        let y = label.getBoundingY();
 
-            if (textWidth < this.width) {
-                x += (this.width - textWidth) / 2;
-            }
-        } else if (textAlignment === "right") {
-            let textWidth = 0;
-            for (const char of text ?? "") {
-                textWidth += (charMap.get(char) ?? DEFAULT_CHAR_WIDTH) * fontSize;
-            }
+        const alignmentOffset = label.getAlignmentOffset();
 
-            if (textWidth < this.width) {
-                x += this.width - textWidth;
-            }
-        }
-
+        x += alignmentOffset;
         x -= this.countElements();
 
-        const nums = [x, y, fontSize * 100].map((n) => Math.floor(n));
+        const nums = [x + this.NEGATIVE_OFFSET, y + this.NEGATIVE_OFFSET, fontSize * 100].map((n) => Math.floor(n));
         const string = `l${this.generateRandomString(9)}:${nums.map((n) => this.formatNumber(n)).join(":")}`;
 
         this.f.label(`${string}:${text}`); // No need for packets as only one packet, meaning i can just read the remaining string
@@ -182,20 +251,43 @@ export class DynamicActionUI {
         return this;
     }
 
+    playerRenderer(renderer: PlayerRenderer) {
+        if (this.playerRenderers.length > 0) {
+            throw new Error("You can only have 1 player renderer per form");
+        }
+
+        renderer.safeSetParentalDimensions({ width: this.width, height: this.height });
+        let w = renderer.getBoundingW();
+        let h = renderer.getBoundingH();
+        let x = renderer.getBoundingX();
+        let y = renderer.getBoundingY();
+
+        const nums = [x + 500, y + 500, w, h, renderer.options.lookAtCursor ? 1 : 0].map((n) => Math.floor(n));
+        const string = `p${this.generateRandomString(9)}:${nums.map((n) => this.formatNumber(n)).join(":")}`;
+
+
+        this.f.body(string);
+
+        x -= this.countElements();
+
+        this.playerRenderers.push(renderer);
+        return this;
+    }
+
     private countElements(): number {
-        return [...this.buttons, ...this.images, ...this.labels].length;
+        return [...this.buttons, ...this.images, ...this.labels, ...this.playerRenderers].length;
     }
 
     stack(stacker: Stacker): DynamicActionUI {
         const resolver = (
             parentStacker: Stacker,
-            parentSize: { width: number; height: number },
-            carryingOffset: { x: number; y: number } = { x: 0, y: 0 },
-        ): { width: number; height: number } => {
+            parentSize: Dimensions,
+            carryingOffset: Position = { x: 0, y: 0 },
+        ): Dimensions => {
             const isHorizontal = parentStacker.orientation === "horizontal";
 
-            const stackerOffsetX = UIUtils.processUnitString(parentStacker.x, parentSize.width);
-            const stackerOffsetY = UIUtils.processUnitString(parentStacker.y, parentSize.height);
+            const stackerOffsetX = UIUtils.processUnitString(parentStacker.offset.x, parentSize.width);
+            const stackerOffsetY = UIUtils.processUnitString(parentStacker.offset.y, parentSize.height);
 
             const spacing = UIUtils.processUnitString(parentStacker.spacing, isHorizontal ? parentSize.width : parentSize.height);
 
@@ -225,8 +317,8 @@ export class DynamicActionUI {
                 // ---- Standard element ----
                 element.setParentalDimensions(parentSize);
 
-                const rawWidth = element.w;
-                const rawHeight = element.h;
+                const rawWidth = element.size.width;
+                const rawHeight = element.size.height;
 
                 if (isHorizontal) {
                     totalFixedSize += element.getBoundingW();
@@ -313,8 +405,9 @@ export class DynamicActionUI {
 
             for (const element of elementQueue) {
                 if (element instanceof Button) this.button(element);
-                if (element instanceof Image) this.image(element);
-                if (element instanceof Label) this.label(element);
+                else if (element instanceof Image) this.image(element);
+                else if (element instanceof Label) this.label(element);
+                else if (element instanceof Grid) this.grid(element);
             }
 
             return {
@@ -323,7 +416,7 @@ export class DynamicActionUI {
             };
         };
 
-        const measure = (stacker: Stacker, parentSize: { width: number; height: number }): { width: number; height: number } => {
+        const measure = (stacker: Stacker, parentSize: Dimensions): Dimensions => {
             const isHorizontal = stacker.orientation === "horizontal";
 
             const spacing = UIUtils.processUnitString(stacker.spacing, isHorizontal ? parentSize.width : parentSize.height);
@@ -370,19 +463,41 @@ export class DynamicActionUI {
         return this;
     }
 
+    /**
+     * 
+     * @param callBack Hard close occurs when the form is closed without a button being clicked / the form being closed by clicking a close button
+     */
+    onClose(callBack: OnCloseCallback) {
+        this.onCloseCallback = callBack;
+    }
+
     show(player: Player): void {
         if (!this.hasTitle) throw new Error("DynamicActionUI Needs a title!");
 
         this.f.show(player).then((response) => {
-            if (response.canceled) return;
-            // Iterate through buttons to find matching elementIndex[cite: 8]
+            if (response.canceled) {
+
+                // Hard close
+                if (this.onCloseCallback) this.onCloseCallback(true);
+                return;
+            }
+
+            let hardClose = true;
+
+            // Iterate through buttons to find matching elementIndex
             for (const button of this.buttons) {
                 if (response.selection === button.elementIndex) {
+
+                    // Makes sure clicking a close button is still considered a hard close
+                    if (!button.options.isCloseButton) hardClose = false;
+
                     if (button.options?.onClick) {
                         button.options.onClick();
                     }
                 }
             }
+
+            if (this.onCloseCallback) this.onCloseCallback(hardClose);
         });
     }
 
@@ -397,6 +512,12 @@ export class DynamicActionUI {
     }
 
     private formatNumber(num: number): string {
+
+        if (num < -99 || num > 999) {
+            throw new Error("A value is either over 999 or less than -99")
+        }
+
+        // -99 to 999
         if (num < 0) {
             return `-${(-num).toString().padStart(this.PACKET_INDEXER_SIZE - 1, "0")}`;
         }
@@ -414,17 +535,85 @@ export class DynamicActionUI {
 
         for (const key of keys) {
             const packet = packets[key];
-            const length = packet.toString().length;
+            
+            let bytes = 0;
+            for (const char of packet.toString()) {
+                if (char === "§") {
+                    bytes += 2;
+                }
 
-            result += `${this.formatNumber(cumulativeLength + packetHeaderLength)}:` + `${this.formatNumber(cumulativeLength + packetHeaderLength + length)}:`;
+                else {
+                    bytes ++;
+                }
+            }
 
-            cumulativeLength += length + 1;
+            result += `${this.formatNumber(cumulativeLength + packetHeaderLength)}:` + `${this.formatNumber(cumulativeLength + packetHeaderLength + bytes)}:`;
+
+            cumulativeLength += bytes + 1;
         }
 
         result += Object.values(packets)
             .map((p) => p.toString())
             .join(":");
 
+
         return result;
     }
 }
+
+/*
+
+Example output:
+
+[Scripting][warning]-dynamic:250:211:200:040:020:-45:000:000|072:075:076:112:113:155:156:159:D§d:textures/ui/forms/default_background:textures/ui/forms/default_title_background:200
+
+[Scripting][warning]-bI0YSqfesP:040:040:000:000:020:020:010:001:005:023|091:094:095:101:102:134:135:165:166:166:100:Hello!:textures/ui/forms/default_button:textures/ui/forms/hover_button:
+
+[Scripting][warning]-blhGpkG2E2:040:040:-01:042:020:020:009:043:004:065|091:094:095:101:102:134:135:165:166:166:100:Hello!:textures/ui/forms/default_button:textures/ui/forms/hover_button:
+
+[Scripting][warning]-bCOK4MKkEL:040:040:-02:084:020:020:008:085:003:107|091:094:095:101:102:134:135:165:166:166:100:Hello!:textures/ui/forms/default_button:textures/ui/forms/hover_button:
+
+[Scripting][warning]-bzFp8gYXa7:040:040:-03:126:020:020:007:127:002:149|091:094:095:101:102:134:135:165:166:166:100:Hello!:textures/ui/forms/default_button:textures/ui/forms/hover_button:
+
+[Scripting][warning]-btPllZ2eCl:040:040:-04:168:020:020:006:169:001:191|091:094:095:101:102:134:135:165:166:166:100:Hello!:textures/ui/forms/default_button:textures/ui/forms/hover_button:
+
+[Scripting][warning]-busniemahe:040:040:045:000:020:020:055:001:050:023|091:094:095:101:102:134:135:165:166:166:100:Hello!:textures/ui/forms/default_button:textures/ui/forms/hover_button:
+
+[Scripting][warning]-bvcaflLLsv:040:040:044:042:020:020:054:043:049:065|091:094:095:101:102:134:135:165:166:166:100:Hello!:textures/ui/forms/default_button:textures/ui/forms/hover_button:
+
+[Scripting][warning]-bKZ6MCrZEs:040:040:043:084:020:020:053:085:048:107|091:094:095:101:102:134:135:165:166:166:100:Hello!:textures/ui/forms/default_button:textures/ui/forms/hover_button:
+
+[Scripting][warning]-bSwuZIFXw6:040:040:042:126:020:020:052:127:047:149|091:094:095:101:102:134:135:165:166:166:100:Hello!:textures/ui/forms/default_button:textures/ui/forms/hover_button:
+
+[Scripting][warning]-bfPhUrOttb:040:040:041:168:020:020:051:169:046:191|091:094:095:101:102:134:135:165:166:166:100:Hello!:textures/ui/forms/default_button:textures/ui/forms/hover_button:
+
+[Scripting][warning]-bjnT9yDCDj:040:040:090:000:020:020:100:001:095:023|091:094:095:101:102:134:135:165:166:166:100:Hello!:textures/ui/forms/default_button:textures/ui/forms/hover_button:
+
+[Scripting][warning]-bQcCK1cpsM:040:040:089:042:020:020:099:043:094:065|091:094:095:101:102:134:135:165:166:166:100:Hello!:textures/ui/forms/default_button:textures/ui/forms/hover_button:
+
+[Scripting][warning]-b10ph7WmMv:040:040:088:084:020:020:098:085:093:107|091:094:095:101:102:134:135:165:166:166:100:Hello!:textures/ui/forms/default_button:textures/ui/forms/hover_button:
+
+[Scripting][warning]-bYhiKiJ0C6:040:040:087:126:020:020:097:127:092:149|091:094:095:101:102:134:135:165:166:166:100:Hello!:textures/ui/forms/default_button:textures/ui/forms/hover_button:
+
+[Scripting][warning]-bc1KjmIvFR:040:040:086:168:020:020:096:169:091:191|091:094:095:101:102:134:135:165:166:166:100:Hello!:textures/ui/forms/default_button:textures/ui/forms/hover_button:
+
+[Scripting][warning]-bz4TNxui4K:040:040:135:000:020:020:145:001:140:023|091:094:095:101:102:134:135:165:166:166:100:Hello!:textures/ui/forms/default_button:textures/ui/forms/hover_button:
+
+[Scripting][warning]-bV4rHtomwr:040:040:134:042:020:020:144:043:139:065|091:094:095:101:102:134:135:165:166:166:100:Hello!:textures/ui/forms/default_button:textures/ui/forms/hover_button:
+
+[Scripting][warning]-bszJK0ZAXu:040:040:133:084:020:020:143:085:138:107|091:094:095:101:102:134:135:165:166:166:100:Hello!:textures/ui/forms/default_button:textures/ui/forms/hover_button:
+
+[Scripting][warning]-bIvkBFsygO:040:040:132:126:020:020:142:127:137:149|091:094:095:101:102:134:135:165:166:166:100:Hello!:textures/ui/forms/default_button:textures/ui/forms/hover_button:
+
+[Scripting][warning]-bNVUsxx4hU:040:040:131:168:020:020:141:169:136:191|091:094:095:101:102:134:135:165:166:166:100:Hello!:textures/ui/forms/default_button:textures/ui/forms/hover_button:
+
+[Scripting][warning]-b7Ck23tuGs:040:040:180:000:020:020:190:001:185:023|091:094:095:101:102:134:135:165:166:166:100:Hello!:textures/ui/forms/default_button:textures/ui/forms/hover_button:
+
+[Scripting][warning]-bvG70E8obv:040:040:179:042:020:020:189:043:184:065|091:094:095:101:102:134:135:165:166:166:100:Hello!:textures/ui/forms/default_button:textures/ui/forms/hover_button:
+
+[Scripting][warning]-bcmmEzg7sA:040:040:178:084:020:020:188:085:183:107|091:094:095:101:102:134:135:165:166:166:100:Hello!:textures/ui/forms/default_button:textures/ui/forms/hover_button:
+
+[Scripting][warning]-bgcxz6QDBb:040:040:177:126:020:020:187:127:182:149|091:094:095:101:102:134:135:165:166:166:100:Hello!:textures/ui/forms/default_button:textures/ui/forms/hover_button:
+
+[Scripting][warning]-bXvFMqFo5I:040:040:176:168:020:020:186:169:181:191|091:094:095:101:102:134:135:165:166:166:100:Hello!:textures/ui/forms/default_button:textures/ui/forms/hover_button:
+*/

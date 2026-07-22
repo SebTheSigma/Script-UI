@@ -1,5 +1,7 @@
+import { Expression } from "./types";
+
 export class UIUtils {
-    public static processUnitString(unitString: string | number, size: number): number {
+    public static processUnitString(unitString: Expression, size: number): number {
         if (typeof unitString === "number") return unitString;
         if (!unitString) return 0;
 

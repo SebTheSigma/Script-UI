@@ -1,19 +1,18 @@
+import { DimensionExpression, Expression, PositionExpression } from "../general/types";
 import { BaseElement } from "./base";
 
 export class Image extends BaseElement {
 
     constructor(
         public texture: string,
-        public x: number | string,
-        public y: number | string,
-        public w: number | string,
-        public h: number | string,
+        public offset: PositionExpression,
+        public size: DimensionExpression
     ) {
-        super(x, y, w, h);
+        super(offset, size);
     }
 
     public clone() {
-        return new Image(this.texture, this.x, this.y, this.w, this.h);
+        return new Image(this.texture, { ...this.offset }, { ...this.size });
     }
 }
 

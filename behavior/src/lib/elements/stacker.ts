@@ -1,24 +1,22 @@
-import { Element } from "../general/types";
+import { Element, Expression, PositionExpression } from "../general/types";
 
 export class Stacker {
     public elements: Element[];
-    public spacing: number | string = 0;
+    public spacing: Expression = 0;
     public orientation: "horizontal" | "vertical" = "vertical";
-    public x: number | string = 0;
-    public y: number | string = 0;
+    public offset: PositionExpression = { x: 0, y: 0 };
 
     constructor(...elements: Element[]) {
         this.elements = elements;
     }
 
-    public setOffset(x: number | string, y: number | string) {
-        this.x = x;
-        this.y = y;
+    public setOffset(offset: PositionExpression) {
+        this.offset = offset;
 
         return this;
     }
 
-    public gap(spacing: number | string) {
+    public gap(spacing: Expression) {
         this.spacing = spacing;
 
         return this;
@@ -36,8 +34,7 @@ export class Stacker {
 
         clone.spacing = this.spacing;
         clone.orientation = this.orientation;
-        clone.x = this.x;
-        clone.y = this.y;
+        clone.offset = { ...this.offset };
 
         return clone;
     }
