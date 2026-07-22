@@ -6,8 +6,29 @@ Dynamic, script side json ui forms, every property listed below can be changed w
 **General editing:**
 - Edit header texture
 - Edit header text
-- Edit body texture
-- Edit body size
+- Edit header size
+- Edit header offset
+- Edit title (see label editing) with extra arguments
+```typescript
+export interface TitleHeaderOptions {
+
+    /**
+     * Auto-matically centers the title horizontally in respect to the form
+     * @default false
+     */
+    autoCenter?: boolean;
+
+    /**
+     * When true, the titleX offset combines with the calculated text alignment offset,
+     * otherwise the titleX offset is overrided
+     * @default false
+     */
+    alignmentShouldCombine?: boolean;
+}
+```
+  
+- Edit form body texture
+- Edit form body size
 
 **Complete control over buttons:**
 - Edit button x offset and y offset
@@ -15,6 +36,7 @@ Dynamic, script side json ui forms, every property listed below can be changed w
 - Edit button default and hover textures
 - Edit button image (see image editing)
 - Edit button label (see label editing)
+- Edit button hover text
 - Several complex and useful button arguments:
 ```typescript
 export interface ButtonOptions {
@@ -32,7 +54,7 @@ export interface ButtonOptions {
 
     /**
      * Positions the text local to the button, so an increase in button position means an increase in text position,
-     * Almost always needed to be `true` otherwise text anchors to the form instead of the button
+     * almost always needed to be `true` otherwise text anchors to the form instead of the button
      * @default false
      */
     localiseText?: boolean;
@@ -58,10 +80,23 @@ export interface ButtonOptions {
      */
     forceGlobalTextParent?: boolean;
 
-    button_textures?: {
+    buttonTextures?: {
         default_texture?: string;
         hover_texture?: string;
     };
+
+    /**
+     * Shows text at the point point when hover over a button, the texture cannot be changed as mojang have it hardcoded.
+     * Useful for tooltips / extra info
+     * @default EmptyString
+     */
+    hoverText?: string;
+
+    /**
+     * If true clicking this button will not count as a button click in terms of the `hardClose` parameter in onClose
+     * @default false
+     */
+    isCloseButton?: boolean;
 }
 ```
 
@@ -73,10 +108,42 @@ export interface ButtonOptions {
 **Complete control over labels:**
 - Edit label text
 - Edit label x offset and y offset
-- Edit fontsize / font scale
+- Edit fontscale
 - Edit text alignment:
 ```typescript
 type TextAlignment = "left" | "center" | "right";
+```
+- Text wrapping system (charcter and word wrap)
+```typescript
+export interface LabelOptions {
+
+    /**
+     * CharacterWrap: cuts the string where the character would leave the designated wrapWidth
+     * WordWrap: cuts the string where the word would leave the designated wrapWidth
+     * @default LabelOptionWrapType.WordWrap
+     */
+    wrapType?: LabelOptionWrapType
+}
+```
+
+**Grids**
+- Take an input of buttons and order them in a grid
+- Uses grid dimensions and size dimensions to allow for more complex layouts
+
+**Player Renderer**
+- Renders the player opening the form
+- Edit player size
+- Edit player offset
+- Edit extra properties
+```typescript
+export interface PlayerRendererOptions {
+
+    /**
+     * Automatically makes the player renderer look at the cursors position
+     * @default true
+     */
+    lookAtCursor: boolean
+}
 ```
 
 **Dynamic flow-like UI with stackers:**
