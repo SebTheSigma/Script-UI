@@ -1,3 +1,4 @@
+import { DebugConfig } from "../../config/debugConfig";
 import { charMap, DEFAULT_CHAR_WIDTH } from "../char";
 import { Expression, PositionExpression } from "../general/types";
 import { BaseElement } from "./base";
@@ -201,7 +202,7 @@ export class Label extends BaseElement {
         let width = parentWidth ?? this.parentalDimensions?.width;
 
         if (!width) {
-            console.warn('Warning: Parent width cant be found while derriving alignment offset');
+            if (DebugConfig.enableWarnings) console.warn('Warning: Parent width cant be found while derriving alignment offset');
             width = 0;
         }
 

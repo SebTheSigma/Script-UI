@@ -11,12 +11,18 @@ import { UIUtils } from "./general/util";
 import { HeaderOptions } from "./elements/singles/header";
 import { Grid } from "./elements/grid";
 import { PlayerRenderer } from "./elements/playerRenderer";
+import { ScrollingPanel } from "./elements/singles/scrollingPanel";
 
 type OnCloseCallback = (hardClose: boolean) => any;
 
 export class DynamicActionUI {
     private f: ActionFormData;
     private hasTitle = false;
+    private addTitle: (() => any) | undefined;
+
+    public scrollHeight: number = 0;
+    private scrollingPanel: ScrollingPanel;
+
     private PACKET_INDEXER_SIZE = 3;
     private NEGATIVE_OFFSET = 500;
     private onCloseCallback: OnCloseCallback | undefined;
@@ -37,6 +43,12 @@ export class DynamicActionUI {
         private headerOptions: HeaderOptions = { autoCenter: false }
     ) {
         this.f = new ActionFormData();
+
+        this.scrollingPanel = new ScrollingPanel({ width, height }, { x: 0, y: 0 });
+    }
+
+    customScrollingContentPanel(scrollingPanel: ScrollingPanel) {
+        this.scrollingPanel = scrollingPanel;
     }
 
     title(title: Label): void {
@@ -70,10 +82,27 @@ export class DynamicActionUI {
         
 
         const nums = [this.width, this.height, this.headerSize.width, this.headerSize.height, correctedHeaderX + this.NEGATIVE_OFFSET, correctedHeaderY + this.NEGATIVE_OFFSET, titleOffset + this.NEGATIVE_OFFSET, title.getBoundingY() + this.NEGATIVE_OFFSET].map(n => Math.floor(n));
-        const string = this.buildDynamicString(packets, nums, "dynamic:");
 
-        this.f.title(string);
         this.hasTitle = true;
+
+        this.addTitle = () => {
+            this.scrollingPanel.setParentalDimensions({ width: this.width, height: this.height });
+            const w = this.scrollingPanel.getBoundingW();
+            const h = this.scrollingPanel.getBoundingH();
+            const x = this.scrollingPanel.getBoundingX();
+            const y = this.scrollingPanel.getBoundingY();
+
+            nums.push(w);
+            nums.push(h);
+            nums.push(x);
+            nums.push(y);
+
+            nums.push(this.scrollHeight);
+
+            const string = this.buildDynamicString(packets, nums.map(n => Math.floor(n)), "dynamic:");
+
+            this.f.title(string);
+        }
     }
 
     button(button: Button): DynamicActionUI {
@@ -166,6 +195,8 @@ export class DynamicActionUI {
         this.buttons.push(button);
         this.f.button(string, image?.texture);
 
+        this.tryUpdateScrollHeight(buttonDimensions.height + buttonOffset.y);
+
         return this;
     }
 
@@ -215,7 +246,7 @@ export class DynamicActionUI {
 
         this.f.header(`${string}:${image.texture}`); // No need for packets as only one packet, meaning i can just read the remaining string
 
-        image.elementIndex = this.countElements();
+        this.tryUpdateScrollHeight(h + y);
 
         this.images.push(image);
         return this;
@@ -228,6 +259,7 @@ export class DynamicActionUI {
         label.safeSetParentalDimensions({ width: this.width, height: this.height });
         let x = label.getBoundingX();
         let y = label.getBoundingY();
+        let h = label.getBoundingH();
 
         const alignmentOffset = label.getAlignmentOffset();
 
@@ -239,7 +271,7 @@ export class DynamicActionUI {
 
         this.f.label(`${string}:${text}`); // No need for packets as only one packet, meaning i can just read the remaining string
 
-        label.elementIndex = this.countElements();
+        this.tryUpdateScrollHeight(h + y);
 
         this.labels.push(label);
         return this;
@@ -259,6 +291,7 @@ export class DynamicActionUI {
         const nums = [x + 500, y + 500, w, h, renderer.options.lookAtCursor ? 1 : 0].map((n) => Math.floor(n));
         const string = `p${this.generateRandomString(9)}:${nums.map((n) => this.formatNumber(n)).join(":")}`;
 
+        this.tryUpdateScrollHeight(h + y);
 
         this.f.body(string);
 
@@ -269,7 +302,7 @@ export class DynamicActionUI {
     }
 
     private countElements(): number {
-        return [...this.buttons, ...this.images, ...this.labels, ...this.playerRenderers].length;
+        return this.buttons.length;
     }
 
     stack(stacker: Stacker): DynamicActionUI {
@@ -457,6 +490,14 @@ export class DynamicActionUI {
         return this;
     }
 
+    setScrollHeight(height: number) {
+        this.scrollHeight = height;
+    }
+    
+    tryUpdateScrollHeight(height: number) {
+        if (height > this.scrollHeight) this.setScrollHeight(height);
+    }
+
     /**
      * 
      * @param callBack Hard close occurs when the form is closed without a button being clicked / the form being closed by clicking a close button
@@ -467,6 +508,9 @@ export class DynamicActionUI {
 
     show(player: Player): void {
         if (!this.hasTitle) throw new Error("DynamicActionUI Needs a title!");
+
+        // This is done after calculating scroll height as scroll height is sent through the title
+        if (this.addTitle) this.addTitle();
 
         this.f.show(player).then((response) => {
             if (response.canceled) {
@@ -485,8 +529,8 @@ export class DynamicActionUI {
                     // Makes sure clicking a close button is still considered a hard close
                     if (!button.options.isCloseButton) hardClose = false;
 
-                    if (button.options?.onClick) {
-                        button.options.onClick();
+                    if (button.onClick) {
+                        button.onClick();
                     }
                 }
             }
@@ -549,7 +593,6 @@ export class DynamicActionUI {
         result += Object.values(packets)
             .map((p) => p.toString())
             .join(":");
-
 
         return result;
     }

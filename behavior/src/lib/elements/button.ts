@@ -6,11 +6,6 @@ import { Label } from "./label";
 export interface ButtonOptions {
 
     /**
-     * Calls the callback function when the button has been clicked
-     */
-    onClick?: () => void;
-
-    /**
      * Centers the image in the button
      * @default false
      */
@@ -82,6 +77,7 @@ export class Button extends BaseElement {
         public ButtonPanel: ButtonPanel,
         public ButtonImage?: Image,
         public ButtonLabel?: Label,
+        public onClick?: () => void,
         public options: ButtonOptions = {},
     ) {
         super(ButtonPanel.offset, ButtonPanel.size);
@@ -92,6 +88,7 @@ export class Button extends BaseElement {
             this.ButtonPanel.clone(),
             this.ButtonImage?.clone(),
             this.ButtonLabel?.clone(),
+            this.onClick,
             { ...this.options }
         );
     }

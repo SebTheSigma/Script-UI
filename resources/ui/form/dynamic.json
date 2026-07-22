@@ -8,10 +8,10 @@
         ],
         "anchor_from": "center",
         "anchor_to": "center",
-        "$text_index": 40,
-        "$texture_background": 48,
-        "$texture_header": 56,
-        "$title_font_scale_index": 64,
+        "$text_index": 60,
+        "$texture_background": 68,
+        "$texture_header": 76,
+        "$title_font_scale_index": 84,
         "$title_font_scale_reducer": 0.01,
         "$negative_offset": 500,
         // Example:
@@ -51,80 +51,6 @@
                         }
                     ],
                     "controls": [
-                        {
-                            "player_renderer_holder": {
-                                "type": "panel",
-                                "anchor_from": "top_left",
-                                "anchor_to": "top_left",
-                                "size": [
-                                    1,
-                                    1
-                                ],
-                                "controls": [
-                                    {
-                                        "player_renderer": {
-                                            
-                                            "type": "custom",
-                                            "renderer": "live_player_renderer",
-                                            "property_bag": {
-                                                "#look_at_cursor": true,
-                                                "#size_binding_x_absolute": 1.0,
-                                                "#size_binding_y_absolute": 1.0,
-                                                "#anchored_offset_value_x": 1.0,
-                                                "#anchored_offset_value_y": 1.0
-                                            },
-                                            "animation_reset_name": "screen_animation_reset",
-                                            "anims": [
-                                                "@common.screen_exit_size_animation_push",
-                                                "@common.screen_exit_size_animation_pop",
-                                                "@common.screen_entrance_size_animation_push",
-                                                "@common.screen_entrance_size_animation_pop"
-                                            ],
-
-                                            "layer": 50,
-                                            "anchor_from": "top_left",
-                                            "anchor_to": "top_left",
-                                            "use_anchored_offset": true,
-                                            "size": [
-                                                1,
-                                                1
-                                            ],
-                                            "bindings": [
-                                                {
-                                                    "binding_name": "#form_text",
-                                                    "binding_type": "global"
-                                                },
-                                                {
-                                                    "binding_type": "view",
-                                                    "source_property_name": "((#form_text - '%.11s' * #form_text) - $negative_offset)",
-                                                    "target_property_name": "#anchored_offset_value_x"
-                                                },
-                                                {
-                                                    "binding_type": "view",
-                                                    "source_property_name": "((#form_text - '%.15s' * #form_text) - $negative_offset)",
-                                                    "target_property_name": "#anchored_offset_value_y"
-                                                },
-                                                {
-                                                    "binding_type": "view",
-                                                    "source_property_name": "(#form_text - '%.19s' * #form_text)",
-                                                    "target_property_name": "#size_binding_x"
-                                                },
-                                                {
-                                                    "binding_type": "view",
-                                                    "source_property_name": "(#form_text - '%.23s' * #form_text)",
-                                                    "target_property_name": "#size_binding_y"
-                                                },
-                                                {
-                                                    "binding_type": "view",
-                                                    "source_property_name": "((#form_text - '%.27s' * #form_text) = 1)",
-                                                    "target_property_name": "#look_at_cursor"
-                                                }
-                                            ]
-                                        }
-                                    }
-                                ]
-                            }
-                        },
                         {
                             "panel": {
                                 "type": "panel",
@@ -252,61 +178,263 @@
                             }
                         },
                         {
-                            "buttons": {
+                            "1x1_sub_panel_holder": {
                                 "type": "panel",
                                 "size": [
-                                    "100%",
-                                    "100%"
+                                    1,
+                                    1
                                 ],
-                                "anchor_from": "top_left",
-                                "anchor_to": "top_left",
                                 "controls": [
                                     {
-                                        "dynamic_button_panel_main": {
+                                        "sub_panel": {
                                             "type": "panel",
+                                            "anchor_from": "center",
+                                            "anchor_to": "center",
                                             "size": [
-                                                "100%",
-                                                "100%"
+                                                1,
+                                                1
                                             ],
-                                            "anchor_from": "top_left",
-                                            "anchor_to": "top_left",
+                                            "use_anchored_offset": true,
+                                            "property_bag": {
+                                                "#size_binding_x_absolute": 1.0,
+                                                "#size_binding_y_absolute": 1.0,
+                                                "#anchored_offset_value_x": 1.0,
+                                                "#anchored_offset_value_y": 1.0
+                                            },
                                             "controls": [
                                                 {
-                                                    "buttons_panel": {
-                                                        "type": "stack_panel",
+                                                    "buttons": {
+                                                        "type": "panel",
                                                         "size": [
-                                                            "100% - 4px",
+                                                            "100%",
                                                             "100%"
                                                         ],
-                                                        "orientation": "horizontal",
                                                         "anchor_from": "top_left",
                                                         "anchor_to": "top_left",
-                                                        "factory": {
-                                                            "name": "buttons",
-                                                            "factory_variables": [
-                                                                "$header_size",
-                                                                "$negative_offset"
-                                                            ],
-                                                            "control_ids": {
-                                                                "button": "@dynamic.custom_button",
-                                                                "label": "@dynamic.custom_label",
-                                                                "header": "@dynamic.custom_image"
-                                                            }
-                                                        },
-                                                        "collection_name": "form_buttons",
-                                                        "bindings": [
+                                                        "controls": [
                                                             {
-                                                                "binding_name": "#form_button_contents",
-                                                                "binding_name_override": "#collection_length"
+                                                                "dynamic_button_panel_main": {
+                                                                    "type": "panel",
+                                                                    "size": [
+                                                                        "100%",
+                                                                        "100%"
+                                                                    ],
+                                                                    "anchor_from": "top_left",
+                                                                    "anchor_to": "top_left",
+                                                                    "controls": [
+                                                                        {
+                                                                            "long_form_panel": {
+                                                                                "type": "stack_panel",
+                                                                                "size": [
+                                                                                    "100%",
+                                                                                    "100%"
+                                                                                ],
+                                                                                "orientation": "vertical",
+                                                                                "layer": 1,
+                                                                                "anchor_from": "top_left",
+                                                                                "anchor_to": "top_left",
+                                                                                "controls": [
+                                                                                    {
+                                                                                        "scrolling_panel@common.scrolling_panel": {
+                                                                                            "anchor_to": "top_left",
+                                                                                            "anchor_from": "top_left",
+                                                                                            "$show_background": false,
+                                                                                            "size": [
+                                                                                                "100%",
+                                                                                                "100%"
+                                                                                            ],
+                                                                                            "$scrolling_content": "dynamic.buttons_scrolling_faker_panel",
+                                                                                            "$scroll_size": [
+                                                                                                5,
+                                                                                                "100% - 4px"
+                                                                                            ],
+                                                                                            "$scrolling_pane_size": [
+                                                                                                "100% - 4px",
+                                                                                                "100% - 2px"
+                                                                                            ],
+                                                                                            "$scrolling_pane_offset": [
+                                                                                                0,
+                                                                                                0
+                                                                                            ],
+                                                                                            "$scroll_bar_right_padding_size": [
+                                                                                                0,
+                                                                                                0
+                                                                                            ]
+                                                                                        }
+                                                                                    }
+                                                                                ]
+                                                                            }
+                                                                        }
+                                                                    ]
+                                                                }
                                                             }
                                                         ]
                                                     }
+                                                }
+                                            ],
+                                            "bindings": [
+                                                {
+                                                    "binding_name": "#title_text",
+                                                    "binding_type": "global"
+                                                },
+                                                {
+                                                    "binding_type": "view",
+                                                    "source_property_name": "(#title_text - '%.40s' * #title_text)",
+                                                    "target_property_name": "#size_binding_x"
+                                                },
+                                                {
+                                                    "binding_type": "view",
+                                                    "source_property_name": "(#title_text - '%.44s' * #title_text)",
+                                                    "target_property_name": "#size_binding_y"
+                                                },
+                                                {
+                                                    "binding_type": "view",
+                                                    "source_property_name": "(#title_text - '%.48s' * #title_text)",
+                                                    "target_property_name": "#anchored_offset_value_x"
+                                                },
+                                                {
+                                                    "binding_type": "view",
+                                                    "source_property_name": "(#title_text - '%.52s' * #title_text)",
+                                                    "target_property_name": "#anchored_offset_value_y"
                                                 }
                                             ]
                                         }
                                     }
                                 ]
                             }
+                        }
+                    ]
+                }
+            }
+        ]
+    },
+    "buttons_scrolling_faker_panel": {
+        "type": "panel",
+        "size": [
+            "100%",
+            "100%c"
+        ],
+        "controls": [
+            {
+                "player_renderer_holder": {
+                    "type": "panel",
+                    "anchor_from": "top_left",
+                    "anchor_to": "top_left",
+                    "size": [
+                        1,
+                        1
+                    ],
+                    "controls": [
+                        {
+                            "player_renderer": {
+                                "type": "custom",
+                                "renderer": "live_player_renderer",
+                                "property_bag": {
+                                    "#look_at_cursor": true,
+                                    "#size_binding_x_absolute": 1.0,
+                                    "#size_binding_y_absolute": 1.0,
+                                    "#anchored_offset_value_x": 1.0,
+                                    "#anchored_offset_value_y": 1.0
+                                },
+                                "animation_reset_name": "screen_animation_reset",
+                                "anims": [
+                                    "@common.screen_exit_size_animation_push",
+                                    "@common.screen_exit_size_animation_pop",
+                                    "@common.screen_entrance_size_animation_push",
+                                    "@common.screen_entrance_size_animation_pop"
+                                ],
+                                "layer": 50,
+                                "anchor_from": "top_left",
+                                "anchor_to": "top_left",
+                                "use_anchored_offset": true,
+                                "size": [
+                                    1,
+                                    1
+                                ],
+                                "bindings": [
+                                    {
+                                        "binding_name": "#form_text",
+                                        "binding_type": "global"
+                                    },
+                                    {
+                                        "binding_type": "view",
+                                        "source_property_name": "((#form_text - '%.11s' * #form_text) - $negative_offset)",
+                                        "target_property_name": "#anchored_offset_value_x"
+                                    },
+                                    {
+                                        "binding_type": "view",
+                                        "source_property_name": "((#form_text - '%.15s' * #form_text) - $negative_offset)",
+                                        "target_property_name": "#anchored_offset_value_y"
+                                    },
+                                    {
+                                        "binding_type": "view",
+                                        "source_property_name": "(#form_text - '%.19s' * #form_text)",
+                                        "target_property_name": "#size_binding_x"
+                                    },
+                                    {
+                                        "binding_type": "view",
+                                        "source_property_name": "(#form_text - '%.23s' * #form_text)",
+                                        "target_property_name": "#size_binding_y"
+                                    },
+                                    {
+                                        "binding_type": "view",
+                                        "source_property_name": "((#form_text - '%.27s' * #form_text) = 1)",
+                                        "target_property_name": "#look_at_cursor"
+                                    }
+                                ]
+                            }
+                        }
+                    ]
+                }
+            },
+            {
+                "buttons_factory": {
+                    "type": "stack_panel",
+                    "size": [
+                        "100% - 4px",
+                        0
+                    ],
+                    "orientation": "horizontal",
+                    "anchor_from": "top_left",
+                    "anchor_to": "top_left",
+                    "factory": {
+                        "name": "buttons",
+                        "factory_variables": [
+                            "$header_size",
+                            "$negative_offset"
+                        ],
+                        "control_ids": {
+                            "button": "@dynamic.custom_button",
+                            "label": "@dynamic.custom_label",
+                            "header": "@dynamic.custom_image"
+                        }
+                    },
+                    "collection_name": "form_buttons",
+                    "bindings": [
+                        {
+                            "binding_name": "#form_button_contents",
+                            "binding_name_override": "#collection_length"
+                        }
+                    ]
+                }
+            },
+            // Fakes the height of the scrolling content
+            {
+                "panel": {
+                    "type": "panel",
+                    "size": [
+                        1,
+                        1
+                    ],
+                    "bindings": [
+                        {
+                            "binding_name": "#title_text",
+                            "binding_type": "global"
+                        },
+                        {
+                            "binding_type": "view",
+                            "source_property_name": "(#title_text - '%.56s' * #title_text)",
+                            "target_property_name": "#size_binding_y_absolute"
                         }
                     ]
                 }

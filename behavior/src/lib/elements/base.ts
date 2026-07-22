@@ -1,6 +1,7 @@
 import { DimensionExpression, Dimensions, Expression, PositionExpression } from "../general/types";
 import { UIUtils } from "../general/util";
 import { DynamicActionUI } from "../ui";
+import { DebugConfig } from "../../config/debugConfig";
 
 export class BaseElement {
     public parentalDimensions: Dimensions | undefined;
@@ -27,22 +28,22 @@ export class BaseElement {
     }
 
     getBoundingX() {
-        console.warn('Warning: Cannot find bounding x parental dimensions');
+        if (DebugConfig.enableWarnings) console.warn('Warning: Cannot find bounding x parental dimensions');
         return UIUtils.processUnitString(this.offset.x, this.parentalDimensions?.width ?? 0);
     }
 
     getBoundingY() {
-        console.warn('Warning: Cannot find bounding y parental dimensions');
+        if (DebugConfig.enableWarnings) console.warn('Warning: Cannot find bounding y parental dimensions');
         return UIUtils.processUnitString(this.offset.y, this.parentalDimensions?.height ?? 0);
     }
 
     getBoundingW() {
-        console.warn('Warning: Cannot find bounding w parental dimensions');
+        if (DebugConfig.enableWarnings) console.warn('Warning: Cannot find bounding w parental dimensions');
         return UIUtils.processUnitString(this.size.width, this.parentalDimensions?.width ?? 0);
     }
 
     getBoundingH() {
-        console.warn('Warning: Cannot find bounding h parental dimensions');
+        if (DebugConfig.enableWarnings) console.warn('Warning: Cannot find bounding h parental dimensions');
         return UIUtils.processUnitString(this.size.height, this.parentalDimensions?.height ?? 0);
     }
 
