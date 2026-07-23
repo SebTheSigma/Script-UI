@@ -1,2 +1,0 @@
-// NOT RN
-// Webhook test

@@ -95,8 +95,8 @@ export class DynamicActionUI {
 
             nums.push(w);
             nums.push(h);
-            nums.push(x);
-            nums.push(y);
+            nums.push(x + 500);
+            nums.push(y + 500);
 
             nums.push(this.scrollHeight);
 
@@ -182,16 +182,10 @@ export class DynamicActionUI {
             hover_text: hoverText ?? ""
         };
 
-        // Account for stack panel width stacking by removing 1 px based on index
-        const elements = this.countElements();
-        buttonOffset.x -= elements;
-        if (image) ix! -= elements;
-        if (label) tx! -= elements;
-
         const nums = [buttonDimensions.width, buttonDimensions.height, buttonOffset.x + this.NEGATIVE_OFFSET, buttonOffset.y + this.NEGATIVE_OFFSET, iw, ih, ix + this.NEGATIVE_OFFSET, iy + this.NEGATIVE_OFFSET, tx + this.NEGATIVE_OFFSET, ty + this.NEGATIVE_OFFSET].map((n) => Math.floor(n));
         const string = this.buildDynamicString(packets, nums, `b${this.generateRandomString(9)}:`);
 
-        button.elementIndex = this.countElements();
+        button.elementIndex = this.buttons.length;
 
         this.buttons.push(button);
         this.f.button(string, image?.texture);
@@ -240,8 +234,6 @@ export class DynamicActionUI {
         let w = image.getBoundingW();
         let h = image.getBoundingH();
 
-        x -= this.countElements();
-
         const nums = [x + this.NEGATIVE_OFFSET, y + this.NEGATIVE_OFFSET, w, h].map((n) => Math.floor(n));
         const string = `i${this.generateRandomString(9)}:${nums.map((n) => this.formatNumber(n)).join(":")}`;
 
@@ -265,7 +257,6 @@ export class DynamicActionUI {
         const alignmentOffset = label.getAlignmentOffset();
 
         x += alignmentOffset;
-        x -= this.countElements();
 
         const nums = [x + this.NEGATIVE_OFFSET, y + this.NEGATIVE_OFFSET, fontSize * 100].map((n) => Math.floor(n));
         const string = `l${this.generateRandomString(9)}:${nums.map((n) => this.formatNumber(n)).join(":")}`;
@@ -309,7 +300,7 @@ export class DynamicActionUI {
     }
 
     private countElements(): number {
-        return this.buttons.length;
+        return [ ...this.labels, this.images, ...this.buttons, ...this.playerRenderers ].length;
     }
 
     stack(stacker: Stacker): DynamicActionUI {
@@ -592,6 +583,8 @@ export class DynamicActionUI {
         result += Object.values(packets)
             .map((p) => p.toString())
             .join(":");
+
+        // console.warn(result);
 
         return result;
     }
