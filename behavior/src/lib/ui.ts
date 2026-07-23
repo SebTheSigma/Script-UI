@@ -12,6 +12,7 @@ import { HeaderOptions } from "./elements/singles/header";
 import { Grid } from "./elements/grid";
 import { PlayerRenderer } from "./elements/playerRenderer";
 import { ScrollingPanel } from "./elements/singles/scrollingPanel";
+import { utf8Bytes } from "./bytes";
 
 type OnCloseCallback = (hardClose: boolean) => any;
 
@@ -278,6 +279,11 @@ export class DynamicActionUI {
     }
 
     playerRenderer(renderer: PlayerRenderer) {
+        const {
+            lookAtCursor = true,
+            topPadding = 0
+        } = renderer.options;
+
         if (this.playerRenderers.length > 0) {
             throw new Error("You can only have 1 player renderer per form");
         }
@@ -288,14 +294,15 @@ export class DynamicActionUI {
         let x = renderer.getBoundingX();
         let y = renderer.getBoundingY();
 
-        const nums = [x + 500, y + 500, w, h, renderer.options.lookAtCursor ? 1 : 0].map((n) => Math.floor(n));
+        x -= this.countElements();
+        y -= topPadding;
+
+        const nums = [x + 500, y + 500, w, h, lookAtCursor ? 1 : 0].map((n) => Math.floor(n));
         const string = `p${this.generateRandomString(9)}:${nums.map((n) => this.formatNumber(n)).join(":")}`;
 
         this.tryUpdateScrollHeight(h + y);
 
         this.f.body(string);
-
-        x -= this.countElements();
 
         this.playerRenderers.push(renderer);
         return this;
@@ -573,21 +580,13 @@ export class DynamicActionUI {
 
         for (const key of keys) {
             const packet = packets[key];
-            
-            let bytes = 0;
-            for (const char of packet.toString()) {
-                if (char === "§") {
-                    bytes += 2;
-                }
+            const packetStr = packet.toString();
 
-                else {
-                    bytes ++;
-                }
-            }
+            const utfByteLength = utf8Bytes(packetStr).length;
 
-            result += `${this.formatNumber(cumulativeLength + packetHeaderLength)}:` + `${this.formatNumber(cumulativeLength + packetHeaderLength + bytes)}:`;
+            result += `${this.formatNumber(cumulativeLength + packetHeaderLength)}:` + `${this.formatNumber(cumulativeLength + packetHeaderLength + utfByteLength)}:`;
 
-            cumulativeLength += bytes + 1;
+            cumulativeLength += utfByteLength + 1;
         }
 
         result += Object.values(packets)
@@ -597,60 +596,3 @@ export class DynamicActionUI {
         return result;
     }
 }
-
-/*
-
-Example output:
-
-[Scripting][warning]-dynamic:250:211:200:040:020:-45:000:000|072:075:076:112:113:155:156:159:D§d:textures/ui/forms/default_background:textures/ui/forms/default_title_background:200
-
-[Scripting][warning]-bI0YSqfesP:040:040:000:000:020:020:010:001:005:023|091:094:095:101:102:134:135:165:166:166:100:Hello!:textures/ui/forms/default_button:textures/ui/forms/hover_button:
-
-[Scripting][warning]-blhGpkG2E2:040:040:-01:042:020:020:009:043:004:065|091:094:095:101:102:134:135:165:166:166:100:Hello!:textures/ui/forms/default_button:textures/ui/forms/hover_button:
-
-[Scripting][warning]-bCOK4MKkEL:040:040:-02:084:020:020:008:085:003:107|091:094:095:101:102:134:135:165:166:166:100:Hello!:textures/ui/forms/default_button:textures/ui/forms/hover_button:
-
-[Scripting][warning]-bzFp8gYXa7:040:040:-03:126:020:020:007:127:002:149|091:094:095:101:102:134:135:165:166:166:100:Hello!:textures/ui/forms/default_button:textures/ui/forms/hover_button:
-
-[Scripting][warning]-btPllZ2eCl:040:040:-04:168:020:020:006:169:001:191|091:094:095:101:102:134:135:165:166:166:100:Hello!:textures/ui/forms/default_button:textures/ui/forms/hover_button:
-
-[Scripting][warning]-busniemahe:040:040:045:000:020:020:055:001:050:023|091:094:095:101:102:134:135:165:166:166:100:Hello!:textures/ui/forms/default_button:textures/ui/forms/hover_button:
-
-[Scripting][warning]-bvcaflLLsv:040:040:044:042:020:020:054:043:049:065|091:094:095:101:102:134:135:165:166:166:100:Hello!:textures/ui/forms/default_button:textures/ui/forms/hover_button:
-
-[Scripting][warning]-bKZ6MCrZEs:040:040:043:084:020:020:053:085:048:107|091:094:095:101:102:134:135:165:166:166:100:Hello!:textures/ui/forms/default_button:textures/ui/forms/hover_button:
-
-[Scripting][warning]-bSwuZIFXw6:040:040:042:126:020:020:052:127:047:149|091:094:095:101:102:134:135:165:166:166:100:Hello!:textures/ui/forms/default_button:textures/ui/forms/hover_button:
-
-[Scripting][warning]-bfPhUrOttb:040:040:041:168:020:020:051:169:046:191|091:094:095:101:102:134:135:165:166:166:100:Hello!:textures/ui/forms/default_button:textures/ui/forms/hover_button:
-
-[Scripting][warning]-bjnT9yDCDj:040:040:090:000:020:020:100:001:095:023|091:094:095:101:102:134:135:165:166:166:100:Hello!:textures/ui/forms/default_button:textures/ui/forms/hover_button:
-
-[Scripting][warning]-bQcCK1cpsM:040:040:089:042:020:020:099:043:094:065|091:094:095:101:102:134:135:165:166:166:100:Hello!:textures/ui/forms/default_button:textures/ui/forms/hover_button:
-
-[Scripting][warning]-b10ph7WmMv:040:040:088:084:020:020:098:085:093:107|091:094:095:101:102:134:135:165:166:166:100:Hello!:textures/ui/forms/default_button:textures/ui/forms/hover_button:
-
-[Scripting][warning]-bYhiKiJ0C6:040:040:087:126:020:020:097:127:092:149|091:094:095:101:102:134:135:165:166:166:100:Hello!:textures/ui/forms/default_button:textures/ui/forms/hover_button:
-
-[Scripting][warning]-bc1KjmIvFR:040:040:086:168:020:020:096:169:091:191|091:094:095:101:102:134:135:165:166:166:100:Hello!:textures/ui/forms/default_button:textures/ui/forms/hover_button:
-
-[Scripting][warning]-bz4TNxui4K:040:040:135:000:020:020:145:001:140:023|091:094:095:101:102:134:135:165:166:166:100:Hello!:textures/ui/forms/default_button:textures/ui/forms/hover_button:
-
-[Scripting][warning]-bV4rHtomwr:040:040:134:042:020:020:144:043:139:065|091:094:095:101:102:134:135:165:166:166:100:Hello!:textures/ui/forms/default_button:textures/ui/forms/hover_button:
-
-[Scripting][warning]-bszJK0ZAXu:040:040:133:084:020:020:143:085:138:107|091:094:095:101:102:134:135:165:166:166:100:Hello!:textures/ui/forms/default_button:textures/ui/forms/hover_button:
-
-[Scripting][warning]-bIvkBFsygO:040:040:132:126:020:020:142:127:137:149|091:094:095:101:102:134:135:165:166:166:100:Hello!:textures/ui/forms/default_button:textures/ui/forms/hover_button:
-
-[Scripting][warning]-bNVUsxx4hU:040:040:131:168:020:020:141:169:136:191|091:094:095:101:102:134:135:165:166:166:100:Hello!:textures/ui/forms/default_button:textures/ui/forms/hover_button:
-
-[Scripting][warning]-b7Ck23tuGs:040:040:180:000:020:020:190:001:185:023|091:094:095:101:102:134:135:165:166:166:100:Hello!:textures/ui/forms/default_button:textures/ui/forms/hover_button:
-
-[Scripting][warning]-bvG70E8obv:040:040:179:042:020:020:189:043:184:065|091:094:095:101:102:134:135:165:166:166:100:Hello!:textures/ui/forms/default_button:textures/ui/forms/hover_button:
-
-[Scripting][warning]-bcmmEzg7sA:040:040:178:084:020:020:188:085:183:107|091:094:095:101:102:134:135:165:166:166:100:Hello!:textures/ui/forms/default_button:textures/ui/forms/hover_button:
-
-[Scripting][warning]-bgcxz6QDBb:040:040:177:126:020:020:187:127:182:149|091:094:095:101:102:134:135:165:166:166:100:Hello!:textures/ui/forms/default_button:textures/ui/forms/hover_button:
-
-[Scripting][warning]-bXvFMqFo5I:040:040:176:168:020:020:186:169:181:191|091:094:095:101:102:134:135:165:166:166:100:Hello!:textures/ui/forms/default_button:textures/ui/forms/hover_button:
-*/
